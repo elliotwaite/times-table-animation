@@ -1,6 +1,6 @@
 ## Times Table Animation Script
 
-The code in this repository ([generate_frames.py](generate_frames.py)) can be used to generate times table animations like the following:
+The code in this repository generated the following animation:
 
 https://www.youtube.com/watch?v=lm4s_3ixBn4
 
