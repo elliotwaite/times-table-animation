@@ -2,15 +2,15 @@
 
 The code in this repository generated the following animation:
 
-https://www.youtube.com/watch?v=lm4s_3ixBn4
+[Times Table Animation Inspired by #Mathologer (4K @ 60 fps)](https://youtu.be/lm4s_3ixBn4)
 
-[<img src="https://img.youtube.com/vi/lm4s_3ixBn4/hqdefault.jpg">](https://www.youtube.com/watch?v=lm4s_3ixBn4)
+[<img src="https://img.youtube.com/vi/lm4s_3ixBn4/hqdefault.jpg">](https://youtu.be/lm4s_3ixBn4)
 
-This project was inspired by Mathologer's video, "Times Tables, Mandelbrot and the Heart of Mathematics": 
+This project was inspired by Mathologer's video:
 
-https://www.youtube.com/watch?v=qhbuKbxJsk8
+[Times Tables, Mandelbrot and the Heart of Mathematics](https://youtu.be/qhbuKbxJsk8)
 
-[<img src="https://img.youtube.com/vi/qhbuKbxJsk8/hqdefault.jpg">](https://www.youtube.com/watch?v=qhbuKbxJsk8)
+[<img src="https://img.youtube.com/vi/qhbuKbxJsk8/hqdefault.jpg">](https://youtu.be/qhbuKbxJsk8)
 
 
 ## Explanation
