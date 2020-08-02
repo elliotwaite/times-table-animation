@@ -7,38 +7,59 @@ import numpy as np
 import tqdm
 
 CUR_DIR = os.path.join(os.path.dirname(__file__))
-FRAMES_DIR = os.path.join(CUR_DIR, 'frames')
-OUTPUT_PATH = os.path.join(CUR_DIR, 'movie.mov')
+OUTPUT_DIR = os.path.join(CUR_DIR, 'output')
 
 WIDTH = 1920 * 2
 HEIGHT = 1080 * 2
+FPS = 60
 
+# The dtype can be changed to use a different level precision for
+# calculating the points used to draw the lines.
 DTYPE = np.float64
+
+# The position and size of the circle.
+CENTER = np.array([WIDTH / 2, HEIGHT / 2], dtype=DTYPE)
+RADIUS = np.array(HEIGHT / 3, dtype=DTYPE)
+
+# The width of each line.
+LINE_WIDTH = 3
+
+# Some helper constants used in the calculations below.
+TAU = np.array(np.pi * 2, dtype=DTYPE)
 MIN_ANGLE_DELTA = np.finfo(DTYPE).eps * 1e6
 LINE_EXTENSION_LENGTH = np.array(WIDTH * 3 / 4, dtype=DTYPE)
 
-CENTER = np.array([WIDTH / 2, HEIGHT / 2], dtype=DTYPE)
-RADIUS = np.array(HEIGHT / 3, dtype=DTYPE)
-TAU = np.array(np.pi * 2, dtype=DTYPE)
-
-LINE_WIDTH = 3
-
-FPS = 60
-
+# The number of points around the circle (which will also be the number
+# of lines drawn on each frame).
 NUM_STARTING_POINTS = 512
-MULTIPLES_PER_STARTING_POINT = 30
-# MULTIPLES_PER_STARTING_POINT = 30 * 2
-# MULTIPLES_PER_STARTING_POINT = 30 * 5 * 2
-# MULTIPLES_PER_STARTING_POINT = 30 * 30
-# MULTIPLES_PER_STARTING_POINT = 1
 
-RESUME = True
+# This in the granularity of the multiples. For example, if
+# `MULTIPLES_PER_STARTING_POINT` is 100, then the multiples would be:
+# 1.00, 1.01, 1.02, etc., and one frame would be generated for each
+# multiple, so the first frame would be for multiple 1.00, and the
+# second frame for multiple 1.01, and so on. If we are generating a
+# video at 30 frames per second, then setting this value to 30 will
+# cycle through one multiple per second.
+MULTIPLES_PER_STARTING_POINT = 30
+
+# If `OVERWRITE` is True, the output directory will be cleared and a new
+# render will be started from scratch. If `OVERWRITE` is False, the
+# script will try to resume any previously started render by skipping
+# any frames that already exist in the output directory. Note that if
+# you are trying to resume a previous render that did not completely
+# finish, you should delete some of the last few frames in the output
+# directory beforehand, since some of the last few frames in the output
+# directory may not have been completely written to disk, meaning the
+# the PNG files may be corrupt or only part of the pattern may be shown
+# in that frame. To be safe, I just delete the last 100 or so frames
+# in the output directory before trying to resume a render.
+OVERWRITE = True
 
 
 def write_frame(frame_data):
-    frame_num, colors, start_points, end_points = frame_data
+    frame_num, start_points, end_points, colors = frame_data
 
-    frame_path = os.path.join(FRAMES_DIR, f'frame_{frame_num}.png')
+    frame_path = os.path.join(OUTPUT_DIR, f'frame_{frame_num}.png')
     if os.path.exists(frame_path):
         return
 
@@ -50,13 +71,16 @@ def write_frame(frame_data):
     cr.set_source_rgb(0, 0, 0)
     cr.set_operator(cairo.Operator.SOURCE)
     cr.paint()
+
+    # Set the operator mode to screen so that any overlapping lines will
+    # be blended.
     cr.set_operator(cairo.Operator.SCREEN)
 
     # Set the line width.
     cr.set_line_width(LINE_WIDTH)
 
     # Draw each line.
-    for i in range(len(colors)):
+    for i in range(len(start_points)):
         cr.set_source_rgb(*colors[i])
         cr.move_to(*start_points[i])
         cr.line_to(*end_points[i])
@@ -67,12 +91,10 @@ def write_frame(frame_data):
 
 
 def main():
-    # Delete the frames directory if it exists then recreate an empty
-    # frames directory.
-    if os.path.exists(FRAMES_DIR) and not RESUME:
-        shutil.rmtree(FRAMES_DIR)
-    if not os.path.exists(FRAMES_DIR):
-        os.mkdir(FRAMES_DIR)
+    if OVERWRITE and os.path.exists(OUTPUT_DIR):
+        shutil.rmtree(OUTPUT_DIR)
+    if not os.path.exists(OUTPUT_DIR):
+        os.mkdir(OUTPUT_DIR)
 
     # Get the angles for each of our starting points.
     start_angles = np.arange(NUM_STARTING_POINTS, dtype=DTYPE) / NUM_STARTING_POINTS * TAU
@@ -95,19 +117,18 @@ def main():
         1,
     )
 
-    # Get the multiples for each frame.
+    # Get the the list of multiples, each multiple will be used to
+    # generate a different frame.
     multiples = np.linspace(
-        1, NUM_STARTING_POINTS, ((NUM_STARTING_POINTS - 1) * MULTIPLES_PER_STARTING_POINT) + 1
+        1, NUM_STARTING_POINTS + 1, NUM_STARTING_POINTS * MULTIPLES_PER_STARTING_POINT + 1,
     )
-    # multiples = np.linspace(
-    #     1, NUM_STARTING_POINTS + 1, NUM_STARTING_POINTS * MULTIPLES_PER_STARTING_POINT + 1,
-    # )
 
     # If I only want to render a section of the sequence, I reduce the
-    # `multiples` array here to the section that should be rendered.
-    # multiples = multiples[-MULTIPLES_PER_STARTING_POINT:]
+    # `multiples` array here to the section that should be rendered. For
+    # example, I rendered the last part of the video at a higher
+    # framerate to slow it down, so I only rendered the last part of the
+    # sequence for that section.
     # multiples = multiples[-MULTIPLES_PER_STARTING_POINT * 2 :]
-    # multiples = multiples[: MULTIPLES_PER_STARTING_POINT * 32]
 
     # Expand the first dimension of `multiples` and the last dimension
     # of `starting_angles` so that they can be broadcast together when
@@ -145,7 +166,7 @@ def main():
     # frame.
     num_frames = start_points.shape[1]
     frame_data_list = [
-        (frame_num, colors, start_points[:, frame_num], end_points[:, frame_num])
+        (frame_num, start_points[:, frame_num], end_points[:, frame_num], colors)
         for frame_num in range(num_frames)
     ]
 
