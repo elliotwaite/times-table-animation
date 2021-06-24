@@ -42,6 +42,10 @@ NUM_STARTING_POINTS = 512
 # cycle through one multiple per second.
 MULTIPLES_PER_STARTING_POINT = 30
 
+# Angle of hue 0 (red).
+# STARTING_ANGLE = TAU / 4
+STARTING_ANGLE = TAU / 8
+
 # If `OVERWRITE` is True, the output directory will be cleared and a new
 # render will be started from scratch. If `OVERWRITE` is False, the
 # script will try to resume any previously started render by skipping
@@ -129,6 +133,7 @@ def main():
     # framerate to slow it down, so I only rendered the last part of the
     # sequence for that section.
     # multiples = multiples[-MULTIPLES_PER_STARTING_POINT * 2 :]
+    multiples = multiples[:1]
 
     # Expand the first dimension of `multiples` and the last dimension
     # of `starting_angles` so that they can be broadcast together when
@@ -146,7 +151,7 @@ def main():
 
     # Get the starting angles and ending angles. These are rotated so
     # that they are displayed in desired rotation.
-    start_angles -= TAU / 4
+    start_angles -= STARTING_ANGLE
     end_angles = start_angles + delta_angles
 
     # Calculate the starting and ending points on the circle form the
