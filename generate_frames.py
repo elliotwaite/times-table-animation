@@ -139,7 +139,7 @@ def main():
     # slow it down, so I only rendered the last part of the sequence for that
     # section.
     # multiples = multiples[:1]
-    multiples = multiples[-MULTIPLES_PER_STARTING_POINT * 2 :]
+    # multiples = multiples[-MULTIPLES_PER_STARTING_POINT * 2 :]
 
     # Expand the first dimension of `multiples` and the last dimension of
     # `starting_angles` so that they can be broadcast together when multiplied.
