@@ -1,22 +1,23 @@
-import os
+from pathlib import Path
 
-CUR_DIR = os.path.join(os.path.dirname(__file__))
-OUTPUT_DIR = os.path.join(CUR_DIR, 'output')
+FRAMES_DIR = Path(__file__).parent / 'frames'
 
 
 def main():
-    num_frames = len(
-        [path for path in os.listdir(OUTPUT_DIR) if os.path.isfile(os.path.join(OUTPUT_DIR, path))]
-    )
+    if not FRAMES_DIR.exists():
+        print(f'The frames directory does not exists: {FRAMES_DIR}')
+        return
+
+    num_frames = len([None for path in FRAMES_DIR.iterdir() if path.is_file()])
     has_missing_frame = False
     for frame_num in range(num_frames):
-        frame_path = os.path.join(OUTPUT_DIR, f'frame_{frame_num}.png')
-        if not os.path.exists(frame_path):
+        frame_path = FRAMES_DIR / f'frame_{frame_num}.png'
+        if not frame_path.exists():
             print('Missing frame: {frame_num}')
             has_missing_frame = True
 
     if not has_missing_frame:
-        print(f'All {num_frames} were found.')
+        print(f'All {num_frames} frames were found.')
 
 
 if __name__ == '__main__':

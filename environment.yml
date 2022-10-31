@@ -1,0 +1,11 @@
+# To create: conda env create -f environment.yml
+# To update: conda env update -f environment.yml --prune
+name: times-table-animation
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.11.*
+  - numpy
+  - pycairo
+  - tqdm
